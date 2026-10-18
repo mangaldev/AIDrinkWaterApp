@@ -1,15 +1,37 @@
 import Foundation
 import CoreMedia
 
-/// Decides "is this person drinking?" from a stream of frames.
+/// Decides "is this person drinking?" from a stream of frames, as five steps shown to the user:
 ///
-/// Rule: face visible, a hand right at the mouth (not the forehead or cheek), and a bottle/cup/glass
-/// recognized in the small area around the mouth in several frames. That has to hold for about
-/// 1.5 seconds in total. A head tilt adds bonus progress. Which labels count as a container, and how
-/// confident they must be, come from the user's `DetectionProfile`.
+/// 1. Face detected
+/// 2. Mouth detected
+/// 3. Cup, mug or glass detected
+/// 4. Hand or fingers detected
+/// 5. Cup at your mouth (seen right at the mouth with a finger near it, in 2 frames)
+///
+/// Steps 1 to 4 turn green the first time they're seen and stay green, so the check doesn't flicker
+/// or start over when the cup briefly hides your face. Step 5 only counts once 1 to 4 are green.
+/// When all five are green, the drink counts. Which labels count as a container, and how confident
+/// they must be, come from the user's `DetectionProfile`.
 final class DrinkCheck: ObservableObject {
+    enum Step: Int, CaseIterable, Identifiable {
+        case face, mouth, cup, hand, cupAtMouth
+        var id: Int { rawValue }
+        var title: String {
+            switch self {
+            case .face: return "Face detected"
+            case .mouth: return "Mouth detected"
+            case .cup: return "Cup, mug or glass detected"
+            case .hand: return "Hand or fingers detected"
+            case .cupAtMouth: return "Cup at your mouth"
+            }
+        }
+    }
+
+    /// Which steps are green, in order.
+    @Published private(set) var passed: [Bool] = Array(repeating: false, count: Step.allCases.count)
     @Published private(set) var progress: Double = 0
-    @Published private(set) var hint = "Hold the phone so your face is in view, then take a sip."
+    @Published private(set) var hint = "Hold the phone so your face is in view."
     @Published private(set) var debugText = ""
     /// True once the check has run long enough that "I did drink" should be offered.
     @Published private(set) var offerManualConfirm = false
@@ -24,15 +46,12 @@ final class DrinkCheck: ObservableObject {
 
     // Tunables
     private let fps: Double = 10
-    private let neededSipSeconds: Double = 1.5
-    private let neededContainerFrames = 2        // classifier must agree this many times
-    private let forgetAfter: TimeInterval = 3    // lose progress if you stop for this long
+    private let neededAtMouthFrames = 2          // classifier must see the cup at the mouth this many times
     private let offerConfirmAfter: TimeInterval = 15
 
     // Live state (touched only on `work`)
-    private var sipSeconds: Double = 0
-    private var containerFrames = 0
-    private var lastAtMouth = Date.distantPast
+    private var seen = Set<Step>()
+    private var atMouthFrames = 0
     private var done = false
     private var startedAt = Date()
 
@@ -54,9 +73,8 @@ final class DrinkCheck: ObservableObject {
     /// Starts over (after a 👎 or an "I did drink"), keeping the camera running.
     func reset() {
         work.async {
-            self.sipSeconds = 0
-            self.containerFrames = 0
-            self.lastAtMouth = .distantPast
+            self.seen = []
+            self.atMouthFrames = 0
             self.done = false
             self.startedAt = Date()
             self.labelScores = [:]
@@ -64,6 +82,7 @@ final class DrinkCheck: ObservableObject {
             self.framesSeen = 0
             self.framesWithFace = 0
             DispatchQueue.main.async {
+                self.passed = Array(repeating: false, count: Step.allCases.count)
                 self.progress = 0
                 self.offerManualConfirm = false
             }
@@ -76,7 +95,7 @@ final class DrinkCheck: ObservableObject {
             let sample = CheckSample(outcome: outcome,
                                      labelScores: self.labelScores,
                                      secondsAtMouth: self.secondsAtMouth,
-                                     containerFrames: self.containerFrames,
+                                     containerFrames: self.atMouthFrames,
                                      faceSeenRatio: self.framesSeen == 0 ? 0 : Double(self.framesWithFace) / Double(self.framesSeen))
             DispatchQueue.main.async { completion(sample) }
         }
@@ -103,51 +122,51 @@ final class DrinkCheck: ObservableObject {
 
     private func update(with s: FrameSignals, at now: Date) {
         let step = 1 / fps
-        let atMouth = s.faceFound && s.handFound
 
         framesSeen += 1
         if s.faceFound { framesWithFace += 1 }
-        if atMouth {
+        if s.faceFound && s.handNearMouth {
             secondsAtMouth += step
             for (label, score) in s.mouthLabelScores where score > (labelScores[label] ?? 0) {
                 labelScores[label] = score
             }
         }
 
-        if atMouth {
-            lastAtMouth = now
-            if s.containerAtMouth { containerFrames += 1 }
-            // Progress only builds once the container has been confirmed.
-            if containerFrames >= neededContainerFrames {
-                sipSeconds += s.headTiltedBack ? step * 1.5 : step
-            }
-        } else if now.timeIntervalSince(lastAtMouth) > forgetAfter {
-            sipSeconds = 0
-            containerFrames = 0
+        if s.faceFound { seen.insert(.face) }
+        if s.mouthFound { seen.insert(.mouth) }
+        if s.containerInView || s.containerAtMouth { seen.insert(.cup) }
+        if s.handFound { seen.insert(.hand) }
+
+        let firstFour: Set<Step> = [.face, .mouth, .cup, .hand]
+        if firstFour.isSubset(of: seen), s.faceFound, s.containerAtMouth {
+            atMouthFrames += 1
+            if atMouthFrames >= neededAtMouthFrames { seen.insert(.cupAtMouth) }
         }
 
-        let containerOK = containerFrames >= neededContainerFrames
-        let ratio = min(sipSeconds / neededSipSeconds, 1)
-        // Show a little progress for hand-at-mouth so it doesn't feel stuck, but cap it.
-        let shown = containerOK ? 0.2 + 0.8 * ratio : (atMouth ? 0.15 : 0)
-        let verified = containerOK && ratio >= 1
-        let offerConfirm = !verified && now.timeIntervalSince(startedAt) > offerConfirmAfter && secondsAtMouth > 1
+        let passedNow = Step.allCases.map { seen.contains($0) }
+        let verified = passedNow.allSatisfy { $0 }
+        let firstMissing = Step.allCases.first { !seen.contains($0) }
+        let offerConfirm = !verified && now.timeIntervalSince(startedAt) > offerConfirmAfter && seen.count >= 3
 
         let newHint: String
-        if verified { newHint = "Nice, logged a glass 💧" }
-        else if !s.faceFound { newHint = "I can't see your face. Hold the phone in front of you." }
-        else if !s.handFound { newHint = "I can't see your hand. Hold your glass or mug where I can see it." }
-        else if !containerOK { newHint = "I see your face and hand. Now bring your glass, mug or bottle to your mouth." }
-        else { newHint = "Keep drinking…" }
+        switch firstMissing {
+        case nil: newHint = "Nice, logged a glass 💧"
+        case .face?: newHint = "Hold the phone so your face is in view."
+        case .mouth?: newHint = "Keep your mouth in view for a moment."
+        case .cup?: newHint = "Show me your cup, mug, glass or bottle."
+        case .hand?: newHint = "Hold your cup so I can see your hand or fingers."
+        case .cupAtMouth?: newHint = "Now bring it to your mouth and take a sip."
+        }
 
-        let debug = "face \(s.faceFound ? "✓" : "✗")  hand \(s.handFound ? "✓" : "✗")  "
-            + "glass \(containerFrames)/\(neededContainerFrames)  sip \(String(format: "%.1f", sipSeconds))s  "
-            + "bar \(Int(extractor.profile.minConfidence * 100))%\n"
+        let debug = "face \(s.faceFound ? "✓" : "✗")  mouth \(s.mouthFound ? "✓" : "✗")  "
+            + "cup \(s.containerInView ? "✓" : "✗")  hand \(s.handFound ? "✓" : "✗")  "
+            + "at mouth \(atMouthFrames)/\(neededAtMouthFrames)  bar \(Int(extractor.profile.minConfidence * 100))%\n"
             + s.mouthLabels.joined(separator: ", ")
 
         if verified { done = true }   // stop processing further frames
         DispatchQueue.main.async {
-            self.progress = shown
+            self.passed = passedNow
+            self.progress = Double(passedNow.filter { $0 }.count) / Double(passedNow.count)
             self.hint = newHint
             self.debugText = debug
             self.offerManualConfirm = offerConfirm

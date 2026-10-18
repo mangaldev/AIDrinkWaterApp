@@ -69,7 +69,7 @@ WaterSipAI reminds the user to drink water and verifies it with an on-device cam
 How to test:
 1. Open the app and tap "Allow notifications".
 2. On the Today tab, tap "Add a glass". The front camera opens.
-3. Hold the phone so your face is visible, bring a glass, cup or bottle to your mouth and take a sip. After about 1.5 seconds the check passes and a glass is logged on Today and Stats.
+3. Hold the phone so your face is visible, bring a glass, cup or bottle to your mouth and take a sip. The screen shows five steps turning green (face, mouth, cup, hand, cup at mouth); when all five are green a glass is logged on Today and Stats.
 4. Reminders: in Settings, set the schedule (e.g. every 15 minutes) and tap Save. When a reminder is due, a notification arrives; opening the app shows the drink check. "Skip for now" always lets you continue and is logged as a missed glass.
 
 Privacy: the app works fully offline. All camera frames are analyzed on device with Apple's Vision framework and are never stored or transmitted. Feedback-based learning stores only label names and confidence numbers locally. The app has no account, no server, no analytics and collects no data.

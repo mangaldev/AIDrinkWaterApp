@@ -46,15 +46,17 @@ iOS doesn't let a normal app lock the device or stay on screen. The closest real
 
 ### How drinking is detected
 
-`DrinkWater/Detection/` uses Apple's built-in Vision models, so there is no model file to ship. All three of these must be in view:
+`DrinkWater/Detection/` uses Apple's built-in Vision models, so there is no model file to ship. The camera screen shows five steps, and each turns green once it's seen:
 
-1. **Face:** face landmarks find your mouth (falling back to the lower face when a cup hides your lips).
-2. **Hand:** any part of a hand. A few fingers on a mug handle are enough.
-3. **Cup at the face:** the built-in image classifier runs on the area around your face and hand and must see a container (bottle, cup, mug, glass, or a steel, metal or plastic cup) in at least 2 frames. A glass sitting on the desk doesn't count.
+1. **Face detected:** face detection finds a face.
+2. **Mouth detected:** face landmarks find your lips.
+3. **Cup, mug or glass detected:** the built-in image classifier sees a container (bottle, cup, mug, glass, or a steel, metal or plastic cup) around your face or anywhere in the picture.
+4. **Hand or fingers detected:** any part of a hand; a few fingers on a mug handle are enough.
+5. **Cup at your mouth:** with steps 1 to 4 green, the classifier sees the container right at your mouth, with a finger near it, in 2 frames.
 
-Once all three hold, progress builds; it unlocks after about 1.5 seconds of sipping (tilting your head back counts extra). Tunables are at the top of `DrinkCheck.swift` and `VisionSignalExtractor.swift`.
+Steps 1 to 4 stay green once seen, so the check doesn't start over when the cup hides your face. When all five are green, the drink counts. Tunables are at the top of `DrinkCheck.swift` and in `VisionSignalExtractor.containerRegions`.
 
-**See what it sees:** turn on Settings → Show detection details, or triple-tap the camera screen. It shows which of the three checks pass and the top labels the classifier sees around your mouth, which helps when tuning.
+**See what it sees:** turn on Settings → Show detection details, or triple-tap the camera screen. It shows which signals are seen in the current frame and the top labels the classifier sees around your mouth, which helps when tuning.
 
 **Learning from feedback (on the phone only):** after a pass the check asks "Did you just drink?" (👍/👎), and after 15 seconds of trying it offers "I did drink, it didn't notice". Each answer saves the labels seen near the mouth and their confidences (no images) and tunes a per-user `DetectionProfile`: a label seen in 2 missed drinks becomes "your cup", a near-miss lowers the confidence bar (down to 10%), and a 👎 raises it and blocks learned labels that caused it. Body labels like "person" or "hand" are never learned. "I did drink" never logs a glass by itself; it only learns and lets you try again. See `DetectionProfile.swift`; Settings → Drink check learning shows what was learned and can reset it.
 
