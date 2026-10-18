@@ -1,6 +1,8 @@
 # WaterSipAI (DrinkWater)
 
-An iOS app that, at times you choose, locks you out until the front camera sees you drinking water. The check runs fully on the phone.
+An iOS app that, at times you choose, locks you out until the front camera sees you drinking water.
+
+**Privacy is the core promise. Keep it true in every change:** on-device AI (Apple's local Vision models), works offline, nothing is recorded (no photos or video saved or sent), and no data leaves the phone (no server, account, ads or tracking). The wording lives in `DrinkWater/Views/PrivacyPromise.swift`, `docs/privacy.html` and `appstore/listing.md`.
 
 There are two builds from the same code:
 
@@ -53,6 +55,8 @@ iOS doesn't let a normal app lock the device or stay on screen. The closest real
 Once all three hold, progress builds; it unlocks after about 1.5 seconds of sipping (tilting your head back counts extra). Tunables are at the top of `DrinkCheck.swift` and `VisionSignalExtractor.swift`.
 
 **See what it sees:** turn on Settings → Show detection details, or triple-tap the camera screen. It shows which of the three checks pass and the top labels the classifier sees around your mouth, which helps when tuning.
+
+**Learning from feedback (on the phone only):** after a pass the check asks "Did you just drink?" (👍/👎), and after 15 seconds of trying it offers "I did drink, it didn't notice". Each answer saves the labels seen near the mouth and their confidences (no images) and tunes a per-user `DetectionProfile`: a label seen in 2 missed drinks becomes "your cup", a near-miss lowers the confidence bar (down to 12%), and a 👎 raises it and blocks learned labels that caused it. Body labels like "person" or "hand" are never learned. "I did drink" never logs a glass by itself; it only learns and lets you try again. See `DetectionProfile.swift`; Settings → Drink check learning shows what was learned and can reset it.
 
 **Next step for accuracy:** record 30 to 50 short clips of yourself drinking and not drinking, train an Action Classifier in Create ML (it uses body pose), and add it as another `SignalExtractor`.
 

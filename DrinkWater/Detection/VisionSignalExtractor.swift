@@ -14,11 +14,12 @@ final class VisionSignalExtractor: SignalExtractor {
     }()
     private let classifyRequest = VNClassifyImageRequest()
 
-    /// Words in Vision's built-in labels that count as a drink container.
-    private let containerWords = ["bottle", "cup", "mug", "glass", "tumbler", "beverage", "drink", "straw", "flask", "jar"]
-    /// Labels containing these words are ignored even if they match above (e.g. "eyeglasses").
-    private let excludedWords = ["eyeglass", "sunglass", "glasses", "goggles", "window"]
-    private let minContainerConfidence: Float = 0.25
+    /// Which labels count as a container, and how confident they must be. Learned per user.
+    var profile: DetectionProfile
+
+    init(profile: DetectionProfile = DetectionProfile()) {
+        self.profile = profile
+    }
 
     private let handJoints: [VNHumanHandPoseObservation.JointName] =
         [.thumbTip, .indexTip, .middleTip, .ringTip, .littleTip, .thumbIP, .indexPIP, .middlePIP]
@@ -66,14 +67,10 @@ final class VisionSignalExtractor: SignalExtractor {
             if !roi.isNull, roi.width > 0.05, roi.height > 0.05 {
                 classifyRequest.regionOfInterest = roi
                 try? handler.perform([classifyRequest])
-                let labels = (classifyRequest.results ?? []).filter { $0.confidence > 0.1 }
+                let labels = (classifyRequest.results ?? []).filter { $0.confidence > 0.08 }
                 s.mouthLabels = labels.prefix(4).map { "\($0.identifier) \(Int($0.confidence * 100))%" }
-                s.containerAtMouth = labels.contains { obs in
-                    let id = obs.identifier.lowercased()
-                    return obs.confidence >= minContainerConfidence
-                        && containerWords.contains { id.contains($0) }
-                        && !excludedWords.contains { id.contains($0) }
-                }
+                for obs in labels.prefix(15) { s.mouthLabelScores[obs.identifier] = obs.confidence }
+                s.containerAtMouth = labels.contains { profile.isContainer($0.identifier, confidence: $0.confidence) }
             }
         }
         return s
