@@ -4,7 +4,7 @@ import CoreMedia
 /// On-device signals from Apple's built-in Vision models (no model file to ship):
 /// - face landmarks -> where the mouth is, plus head pitch
 /// - hand pose -> where fingertips and wrist are
-/// - image classifier, run only on the area around the mouth -> is a bottle, cup or glass there
+/// - image classifier, run only on the area around the mouth and hand -> is a bottle, cup, mug or glass there
 final class VisionSignalExtractor: SignalExtractor {
     private let faceRequest = VNDetectFaceLandmarksRequest()
     private let handRequest: VNDetectHumanHandPoseRequest = {
@@ -58,21 +58,48 @@ final class VisionSignalExtractor: SignalExtractor {
             }
         }
 
-        // Only look for a container when the hand is already at the mouth, and only in a small
-        // box around the mouth, so a glass sitting on the desk doesn't count.
+        // Only look for a container when the hand is already at the mouth, and only near the mouth,
+        // so a glass sitting on the desk doesn't count. Two areas are checked:
+        // 1. a box around the mouth;
+        // 2. a box around the hand and mouth together. A mug held by its handle sits between the
+        //    fingers and the lips, and when you tip it up the camera sees its base, off to one side.
         if checkObjects, s.handAtMouth, let mouth = s.mouth {
-            let side = min(max(s.faceWidth * 1.4, 0.15), 1)
-            let roi = CGRect(x: mouth.x - side / 2, y: mouth.y - side * 0.65, width: side, height: side)
-                .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
-            if !roi.isNull, roi.width > 0.05, roi.height > 0.05 {
+            var scores: [String: Float] = [:]
+            for roi in containerRegions(mouth: mouth, signals: s) {
                 classifyRequest.regionOfInterest = roi
                 try? handler.perform([classifyRequest])
-                let labels = (classifyRequest.results ?? []).filter { $0.confidence > 0.08 }
-                s.mouthLabels = labels.prefix(4).map { "\($0.identifier) \(Int($0.confidence * 100))%" }
-                for obs in labels.prefix(15) { s.mouthLabelScores[obs.identifier] = obs.confidence }
-                s.containerAtMouth = labels.contains { profile.isContainer($0.identifier, confidence: $0.confidence) }
+                for obs in (classifyRequest.results ?? []).prefix(25) where obs.confidence > 0.08 {
+                    scores[obs.identifier] = max(scores[obs.identifier] ?? 0, obs.confidence)
+                }
             }
+            let ranked = scores.sorted { $0.value > $1.value }
+            s.mouthLabels = ranked.prefix(5).map { "\($0.key) \(Int($0.value * 100))%" }
+            for (label, score) in ranked.prefix(20) { s.mouthLabelScores[label] = score }
+            s.containerAtMouth = ranked.contains { profile.isContainer($0.key, confidence: $0.value) }
         }
         return s
+    }
+
+    /// The areas to classify for a container, clipped to the frame.
+    private func containerRegions(mouth: CGPoint, signals s: FrameSignals) -> [CGRect] {
+        let frame = CGRect(x: 0, y: 0, width: 1, height: 1)
+        var regions: [CGRect] = []
+
+        let side = min(max(s.faceWidth * 1.4, 0.15), 1)
+        regions.append(CGRect(x: mouth.x - side / 2, y: mouth.y - side * 0.65, width: side, height: side))
+
+        // Hand points near the mouth, plus the mouth itself, padded.
+        let near = s.handPoints.filter { hypot($0.x - mouth.x, $0.y - mouth.y) < s.faceWidth * 0.9 } + [mouth]
+        if near.count > 1 {
+            let xs = near.map(\.x), ys = near.map(\.y)
+            let pad = s.faceWidth * 0.35
+            regions.append(CGRect(x: xs.min()! - pad, y: ys.min()! - pad,
+                                  width: xs.max()! - xs.min()! + pad * 2,
+                                  height: ys.max()! - ys.min()! + pad * 2))
+        }
+
+        return regions
+            .map { $0.intersection(frame) }
+            .filter { !$0.isNull && $0.width > 0.05 && $0.height > 0.05 }
     }
 }

@@ -5,8 +5,12 @@ import Foundation
 /// Everything stays on the phone.
 struct DetectionProfile: Codable, Equatable {
     /// Words in Vision's labels that count as a drink container.
+    /// Matched anywhere in the label, so "coffee_mug" and "water_bottle" count.
     static let baseContainerWords = ["bottle", "cup", "mug", "glass", "tumbler", "beverage", "drink",
-                                     "straw", "flask", "jar", "coffee", "tea"]
+                                     "straw", "flask", "jar", "coffee", "tea", "thermos", "canteen",
+                                     "tableware", "dishware", "drinkware", "porcelain", "ceramic"]
+    /// Matched only as a whole word, because they are short ("can" is in "candle").
+    static let baseContainerTokens = ["can", "kettle", "pitcher", "jug", "carafe", "container"]
     /// Never count these, even if they contain a container word (e.g. "eyeglasses", "cupcake").
     static let baseExcludedWords = ["eyeglass", "sunglass", "glasses", "goggles", "window", "cupcake", "teeth"]
     /// Labels about people and bodies. Never learned as a container, or a hand on the mouth would pass.
@@ -30,8 +34,10 @@ struct DetectionProfile: Codable, Equatable {
         let id = label.lowercased()
         guard confidence >= minConfidence, !blockedLabels.contains(id) else { return false }
         if learnedLabels.contains(id) { return true }
-        return Self.baseContainerWords.contains { id.contains($0) }
-            && !Self.baseExcludedWords.contains { id.contains($0) }
+        let tokens = id.split(whereSeparator: { !$0.isLetter }).map(String.init)
+        let matches = Self.baseContainerWords.contains { id.contains($0) }
+            || tokens.contains { Self.baseContainerTokens.contains($0) }
+        return matches && !Self.baseExcludedWords.contains { id.contains($0) }
     }
 
     static func isBodyLabel(_ label: String) -> Bool {
