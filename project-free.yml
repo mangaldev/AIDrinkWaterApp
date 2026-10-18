@@ -1,5 +1,6 @@
-# FREE build: works with a free Apple ID, installed over a cable from a Mac.
-# No Screen Time, so other apps aren't blocked; DrinkWater locks itself until you drink.
+# STANDARD build: this is also the App Store version 1 build.
+# Works with a free Apple ID over a cable, or a paid account for TestFlight / App Store.
+# No Screen Time, so other apps aren't blocked; the app stays on the camera check until you drink.
 # Generate with:  brew install xcodegen && xcodegen --spec project-free.yml
 name: DrinkWaterFree
 options:
@@ -8,6 +9,9 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "1.0"        # version shown on the App Store
+    CURRENT_PROJECT_VERSION: "1"    # build number: raise it for every upload
+    TARGETED_DEVICE_FAMILY: "1"     # iPhone only
     DEVELOPMENT_TEAM: ""   # pick your "Personal Team" in Xcode instead of typing it here
     CODE_SIGN_STYLE: Automatic
 
@@ -21,11 +25,17 @@ targets:
     info:
       path: DrinkWater/Info.plist
       properties:
-        CFBundleDisplayName: DrinkWater
+        CFBundleDisplayName: WaterSipAI
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        ITSAppUsesNonExemptEncryption: false
+        LSApplicationCategoryType: public.app-category.healthcare-fitness
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
-        NSCameraUsageDescription: DrinkWater uses the front camera to check that you are drinking water. Video never leaves your phone.
+        NSCameraUsageDescription: WaterSipAI uses the front camera to check that you are drinking water. Video never leaves your phone.
     settings:
       base:
-        # Must be unique to you. Change "yourname" to anything, e.g. your name.
-        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.drinkwater
+        # Must be unique to you; it can't change after the first App Store upload.
+        PRODUCT_BUNDLE_IDENTIFIER: com.mangaldev.drinkwater
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor

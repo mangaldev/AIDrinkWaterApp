@@ -7,7 +7,7 @@ enum DrinkNotifications {
     static func postOpenAppNow() {
         let content = UNMutableNotificationContent()
         content.title = "Time to drink water"
-        content.body = "Tap to open DrinkWater and unlock your phone."
+        content.body = "Tap to open WaterSipAI and unlock your phone."
         content.sound = .default
         content.interruptionLevel = .timeSensitive
         let req = UNNotificationRequest(identifier: "drink-now",

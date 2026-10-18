@@ -27,7 +27,7 @@ struct DrinkCheckView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
-                if showDebug {
+                if showDebug && FeatureFlags.testingTools {
                     Text(checker.debugText)
                         .font(.caption.monospaced())
                         .padding(8)
@@ -60,7 +60,9 @@ struct DrinkCheckView: View {
             .shadow(radius: 4)
         }
         .background(Color.black)
-        .onTapGesture(count: 3) { showDebug.toggle() }   // triple-tap shows what the detector sees
+        .onTapGesture(count: 3) {   // triple-tap shows what the detector sees (Debug builds only)
+            if FeatureFlags.testingTools { showDebug.toggle() }
+        }
         .onAppear {
             checker.onVerified = {
                 model.drinkVerified(manual: mode == .manual)
