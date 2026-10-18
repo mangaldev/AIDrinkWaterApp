@@ -66,6 +66,8 @@ Once all three hold, progress builds; it unlocks after about 1.5 seconds of sipp
 
 iOS never lets an app open itself, so a notification is the strongest nudge available. At each reminder time you get a notification, then a follow-up every 5 minutes (up to 4) until you drink or skip. Tapping any of them opens DrinkWater straight into the camera check. Opening DrinkWater after a missed reminder also lands on the check.
 
+**Vibration and sound** (Settings → Reminder alerts): vibration is on and sound is off by default. You can pick Water drop, Chime, Bell or the iPhone default sound. With the app open, a reminder vibrates 3 times. A notification that arrives in the background vibrates once, because iOS doesn't let apps choose a vibration pattern for notifications. Sound files live in `DrinkWater/Sounds/`; any `.wav` under 30 seconds can be added there and listed in `AlertSettings.Sound`.
+
 Notifications are planned for the next day or two and re-planned each time you open the app, so open it at least once a day.
 
 ### Escape hatch

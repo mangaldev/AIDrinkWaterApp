@@ -59,7 +59,7 @@ enum NotificationPlanner {
         let content = UNMutableNotificationContent()
         content.title = followUp ? "Still waiting on that glass 💧" : "Time to drink water 💧"
         content.body = "Tap to open WaterSipAI and take a sip on camera."
-        content.sound = .default
+        content.sound = SharedStore.alerts.notificationSound
         content.interruptionLevel = .timeSensitive
         let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
         return UNNotificationRequest(identifier: "drink-\(Int(date.timeIntervalSince1970))",

@@ -71,6 +71,8 @@ struct DrinkCheckView: View {
                 }
             }
             camera.onFrame = { [weak checker] buffer in checker?.process(buffer) }
+            // Alert before the camera starts: iOS can mute vibration while capture is running.
+            if mode == .reminder { AlertPlayer.playReminderAlert() }
             camera.start()
         }
         .onDisappear { camera.stop() }
