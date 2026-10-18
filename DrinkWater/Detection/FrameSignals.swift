@@ -16,12 +16,14 @@ struct FrameSignals {
     /// Every label seen around the mouth with its confidence (used for learning from feedback).
     var mouthLabelScores: [String: Float] = [:]
 
-    /// A hand point is right at the mouth: close to it, and not above the upper lip.
-    /// This is what rules out a hand on the forehead or cheek.
+    /// A hand point is near the mouth, and not up at the eyes or forehead.
+    /// The distance is generous because a mug held by its handle puts the fingers off to the side
+    /// of the face, often level with the nose. A hand on the forehead is still ruled out, and the
+    /// check also needs a cup, bottle or glass seen at the mouth before it counts.
     var handAtMouth: Bool {
         guard let mouth, faceWidth > 0 else { return false }
-        let maxDistance = faceWidth * 0.45
-        let maxAbove = faceHeight * 0.12   // Vision y grows upward
+        let maxDistance = faceWidth * 0.9
+        let maxAbove = faceHeight * 0.35   // about nose level; Vision y grows upward
         return handPoints.contains { p in
             hypot(p.x - mouth.x, p.y - mouth.y) < maxDistance && p.y < mouth.y + maxAbove
         }
