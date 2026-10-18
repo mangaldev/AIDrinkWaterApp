@@ -18,17 +18,23 @@
 
 **Keywords (100 max, comma separated, no spaces):**
 ```
-drink,hydration,tracker,habit,daily,goal,intake,glass,bottle,health,log,aqua,hydrate,thirst,camera
+drink,hydration,tracker,habit,private,offline,intake,glass,bottle,health,log,hydrate,camera,daily,goal
 ```
 
 **Promotional text (170 max):**
 ```
-Most water reminders are easy to swipe away. WaterSipAI opens a quick camera check and only logs a glass when it sees you actually drink.
+The water reminder that checks you really drink, with on-device AI. Works offline. No photos or video are ever recorded or sent anywhere.
 ```
 
 **Description:**
 ```
-Most water reminders are easy to ignore. WaterSipAI checks that you actually drink.
+Most water reminders are easy to ignore. WaterSipAI checks that you actually drink, using AI that runs entirely on your iPhone.
+
+100% ON-DEVICE AND PRIVATE
+• On-device AI: the drink check runs on Apple's local AI models, on your iPhone
+• Works offline: no internet needed, no servers, no account
+• Nothing is recorded: no photos or video are saved, uploaded or sent anywhere
+• No data leaves your phone: no ads, no tracking, your history stays on your iPhone
 
 At the times you choose, WaterSipAI sends a reminder. Tap it and a quick camera check opens: bring your glass or bottle to your mouth, take a sip, and it's logged. Not ready? Skip it, and it counts as a missed glass, so you stay honest with yourself.
 
@@ -43,12 +49,11 @@ TRACK YOUR HABIT
 • Stats: a 7- or 30-day chart, your daily average, and every glass with its time
 • Missed reminders show up too, so you can spot your dry spells
 
-PRIVATE BY DESIGN
-• The AI camera check runs entirely on your iPhone
-• Video is never recorded, saved or uploaded
-• No account, no ads, no tracking
+GETS SMARTER WITH YOU
+• Tell it whether it got it right, or tap "I did drink" if it missed you
+• It learns your cups and your lighting, on your phone only
 
-Build a water habit you can actually prove.
+Build a water habit you can actually prove, privately.
 ```
 
 **Copyright:** 2026 Mangal
@@ -67,7 +72,7 @@ How to test:
 3. Hold the phone so your face is visible, bring a glass, cup or bottle to your mouth and take a sip. After about 1.5 seconds the check passes and a glass is logged on Today and Stats.
 4. Reminders: in Settings, set the schedule (e.g. every 15 minutes) and tap Save. When a reminder is due, a notification arrives; opening the app shows the drink check. "Skip for now" always lets you continue and is logged as a missed glass.
 
-Privacy: all camera frames are analyzed on device with Apple's Vision framework and are never stored or transmitted. The app has no account, no server, no analytics and collects no data.
+Privacy: the app works fully offline. All camera frames are analyzed on device with Apple's Vision framework and are never stored or transmitted. Feedback-based learning stores only label names and confidence numbers locally. The app has no account, no server, no analytics and collects no data.
 ```
 
 **App Privacy (questionnaire):** "Do you or your third-party partners collect data from this app?" → **No, we do not collect data from this app.**
@@ -75,8 +80,9 @@ Privacy: all camera frames are analyzed on device with Apple's Vision framework 
 ## Screenshots (6.9" iPhone, 1320 × 2868, at least 3)
 
 1. Today tab with a few glasses logged. Caption: "Only counts when you really drink"
-2. The camera check mid-sip with the progress bar. Caption: "A quick sip on camera, checked on your phone"
+2. The camera check mid-sip with the progress bar. Caption: "On-device AI. Nothing recorded, nothing sent"
 3. Stats tab with the 7-day chart. Caption: "See your water habit at a glance"
 4. A reminder notification on the lock screen. Caption: "Reminders that don't let you forget"
+5. Onboarding privacy points. Caption: "Works offline. Your data never leaves your iPhone"
 
 Take them on your iPhone (side button + volume up). Screenshots from an iPhone 16 Pro Max or 17 Pro Max are the right size.

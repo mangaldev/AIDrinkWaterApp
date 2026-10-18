@@ -77,12 +77,13 @@ struct SettingsView: View {
                     }
                 }
 
-                Section("About") {
+                LearningSection()
+
+                Section("Privacy") {
+                    PrivacyPointsView()
+                        .padding(.vertical, 4)
                     Link("Privacy policy", destination: AppLinks.privacy)
                     Link("Support", destination: AppLinks.support)
-                    Text("Video from the camera is checked on your phone and is never saved or sent anywhere.")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Settings")
