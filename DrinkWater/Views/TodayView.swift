@@ -46,7 +46,7 @@ struct TodayView: View {
                         .onDelete { idx in idx.map { todays[$0] }.forEach(log.delete) }
                 }
             }
-            .navigationTitle("DrinkWater")
+            .navigationTitle("SipProof")
             .fullScreenCover(isPresented: $showCamera) {
                 DrinkCheckView(mode: .manual) { showCamera = false }
                     .environmentObject(model)

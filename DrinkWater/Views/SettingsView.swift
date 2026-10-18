@@ -38,22 +38,32 @@ struct SettingsView: View {
                 } header: {
                     Text("Always allowed")
                 } footer: {
-                    Text("Pick DrinkWater itself, plus anything you must never lose, like Phone.")
+                    Text("Pick SipProof itself, plus anything you must never lose, like Phone.")
                 }
                 #else
                 Section {
-                    Text("This free build can't block other apps. It reminds you and locks DrinkWater itself until you drink.")
+                    Text("At each reminder, SipProof stays on the camera check until you drink. It doesn't block other apps.")
                         .foregroundStyle(.secondary)
                 }
                 #endif
 
-                Section {
-                    Button("Lock now") { model.lockNow() }
-                    Toggle("Show detection details", isOn: $showDebug)
-                } header: {
-                    Text("Testing")
-                } footer: {
-                    Text("Detection details show what the camera check sees. You can also triple-tap the camera screen.")
+                if FeatureFlags.testingTools {
+                    Section {
+                        Button("Lock now") { model.lockNow() }
+                        Toggle("Show detection details", isOn: $showDebug)
+                    } header: {
+                        Text("Testing")
+                    } footer: {
+                        Text("Detection details show what the camera check sees. You can also triple-tap the camera screen.")
+                    }
+                }
+
+                Section("About") {
+                    Link("Privacy policy", destination: AppLinks.privacy)
+                    Link("Support", destination: AppLinks.support)
+                    Text("Video from the camera is checked on your phone and is never saved or sent anywhere.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Settings")

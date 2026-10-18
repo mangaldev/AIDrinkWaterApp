@@ -1,4 +1,4 @@
-# DrinkWater
+# SipProof (DrinkWater)
 
 An iOS app that, at times you choose, locks you out until the front camera sees you drinking water. The check runs fully on the phone.
 
@@ -92,3 +92,17 @@ The development version of the entitlement works on your own phone straight from
 - Up to 20 reminders a day (iOS caps how many schedules an app can watch). Each is at least 15 minutes apart.
 - iOS decides exactly when the monitor extension runs; it's usually on time but can be a little late.
 - This code was written without a Mac to compile on, so expect a few small fixes the first time you build.
+
+## Releasing to the App Store
+
+Version 1 ships from `project-free.yml` (no Screen Time). You need a paid Apple Developer account.
+
+1. Make sure `PRODUCT_BUNDLE_IDENTIFIER` in `project-free.yml` is the id you want forever (it's `com.mangaldev.drinkwater`). Run `xcodegen --spec project-free.yml`.
+2. In Xcode, pick your paid team under Signing & Capabilities.
+3. Create the app in [App Store Connect](https://appstoreconnect.apple.com) → Apps → + → New App, with the same bundle id. Fill it in from [`appstore/listing.md`](appstore/listing.md).
+4. Turn on GitHub Pages for this repo (Settings → Pages → Deploy from a branch → `main`, folder `/docs`), so the privacy and support links work.
+5. In Xcode, choose **Any iOS Device (arm64)** as the destination, then Product → Archive → Distribute App → App Store Connect → Upload.
+6. In App Store Connect, select the uploaded build, add screenshots, answer App Privacy with "Data Not Collected", paste the review notes, and Submit for Review.
+7. For every later upload, raise `CURRENT_PROJECT_VERSION` (and `MARKETING_VERSION` for a new version) in `project-free.yml`.
+
+Release builds hide the testing tools ("Lock now" and the detection overlay). They only appear when you run from Xcode in Debug.
