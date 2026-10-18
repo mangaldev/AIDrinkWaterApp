@@ -3,12 +3,13 @@ import CoreMedia
 
 /// Decides "is this person drinking?" from a stream of frames.
 ///
-/// Rule: within a rolling window, the hand must be at the mouth for about 1.5 seconds in total,
-/// the face must stay visible, and a bottle/cup/glass must be seen at least once near the mouth.
-/// A head tilt adds bonus progress. This beats a single photo, which is easy to fake.
+/// Rule: face visible, a hand right at the mouth (not the forehead or cheek), and a bottle/cup/glass
+/// recognized in the small area around the mouth in several frames. That has to hold for about
+/// 1.5 seconds in total. A head tilt adds bonus progress.
 final class DrinkCheck: ObservableObject {
     @Published private(set) var progress: Double = 0
     @Published private(set) var hint = "Hold the phone so your face is in view, then take a sip."
+    @Published private(set) var debugText = ""
 
     var onVerified: (() -> Void)?
 
@@ -21,11 +22,12 @@ final class DrinkCheck: ObservableObject {
     // Tunables
     private let fps: Double = 10
     private let neededSipSeconds: Double = 1.5
-    private let forgetAfter: TimeInterval = 4      // lose progress if you stop for this long
+    private let neededContainerFrames = 3        // classifier must agree this many times
+    private let forgetAfter: TimeInterval = 3    // lose progress if you stop for this long
 
     private var sipSeconds: Double = 0
-    private var containerSeenRecently = false
-    private var lastNearMouth = Date.distantPast
+    private var containerFrames = 0
+    private var lastAtMouth = Date.distantPast
     private var done = false
 
     init(extractor: SignalExtractor = VisionSignalExtractor()) {
@@ -39,7 +41,7 @@ final class DrinkCheck: ObservableObject {
         busy = true
         lastProcessed = now
         frameIndex += 1
-        let checkObjects = frameIndex % 3 == 0   // classifier is the slowest request
+        let checkObjects = frameIndex % 2 == 0   // classifier is the slowest request
 
         work.async { [weak self] in
             guard let self else { return }
@@ -51,32 +53,42 @@ final class DrinkCheck: ObservableObject {
 
     private func update(with s: FrameSignals, at now: Date) {
         let step = 1 / fps
+        let atMouth = s.faceFound && s.handAtMouth
 
-        if s.handNearMouth {
-            lastNearMouth = now
-            sipSeconds += s.headTiltedBack ? step * 1.5 : step
-            if s.containerSeen { containerSeenRecently = true }
-        } else if now.timeIntervalSince(lastNearMouth) > forgetAfter {
+        if atMouth {
+            lastAtMouth = now
+            if s.containerAtMouth { containerFrames += 1 }
+            // Progress only builds once the container has been confirmed.
+            if containerFrames >= neededContainerFrames {
+                sipSeconds += s.headTiltedBack ? step * 1.5 : step
+            }
+        } else if now.timeIntervalSince(lastAtMouth) > forgetAfter {
             sipSeconds = 0
-            containerSeenRecently = false
+            containerFrames = 0
         }
 
+        let containerOK = containerFrames >= neededContainerFrames
         let ratio = min(sipSeconds / neededSipSeconds, 1)
-        // Without a container seen, cap progress so a hand alone can't unlock.
-        let shown = containerSeenRecently ? ratio : min(ratio, 0.6)
-        let verified = ratio >= 1 && containerSeenRecently && s.faceFound
+        // Show a little progress for hand-at-mouth so it doesn't feel stuck, but cap it.
+        let shown = containerOK ? 0.2 + 0.8 * ratio : (atMouth ? 0.15 : 0)
+        let verified = containerOK && ratio >= 1
 
         let newHint: String
-        if verified { newHint = "Nice, unlocked 💧" }
+        if verified { newHint = "Nice, logged a glass 💧" }
         else if !s.faceFound { newHint = "I can't see your face. Hold the phone in front of you." }
-        else if !s.handNearMouth { newHint = "Bring your water to your mouth and take a sip." }
-        else if !containerSeenRecently { newHint = "Keep drinking, and make sure the bottle or glass is visible." }
+        else if !s.handAtMouth { newHint = "Bring your glass or bottle to your mouth and take a sip." }
+        else if !containerOK { newHint = "I see your hand, but not a glass. Keep the glass or bottle in view." }
         else { newHint = "Keep drinking…" }
+
+        let debug = "face \(s.faceFound ? "✓" : "✗")  hand@mouth \(s.handAtMouth ? "✓" : "✗")  "
+            + "glass \(containerFrames)/\(neededContainerFrames)  sip \(String(format: "%.1f", sipSeconds))s\n"
+            + s.mouthLabels.joined(separator: ", ")
 
         if verified { done = true }   // stop processing further frames
         DispatchQueue.main.async {
             self.progress = shown
             self.hint = newHint
+            self.debugText = debug
             if verified { self.onVerified?() }
         }
     }

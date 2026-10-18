@@ -9,28 +9,8 @@ enum ReminderScheduler {
         #if SCREEN_TIME
         try applyScreenTime(schedule)
         #else
-        applyNotifications(schedule)
+        NotificationPlanner.replan(schedule: schedule, lastCleared: SharedStore.lastCleared)
         #endif
-    }
-
-    /// Free build: one daily-repeating notification per reminder time.
-    /// Tapping it opens the app, which shows the drink check.
-    static func applyNotifications(_ schedule: ReminderSchedule) {
-        let center = UNUserNotificationCenter.current()
-        center.removeAllPendingNotificationRequests()
-        guard schedule.enabled else { return }
-
-        for minute in schedule.minutesOfDay {
-            let content = UNMutableNotificationContent()
-            content.title = "Time to drink water 💧"
-            content.body = "Open DrinkWater and take a sip on camera."
-            content.sound = .default
-            let when = DateComponents(hour: minute / 60, minute: minute % 60)
-            let req = UNNotificationRequest(identifier: "drink-\(minute)",
-                                            content: content,
-                                            trigger: UNCalendarNotificationTrigger(dateMatching: when, repeats: true))
-            center.add(req)
-        }
     }
 
     #if SCREEN_TIME

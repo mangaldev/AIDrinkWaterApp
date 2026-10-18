@@ -8,12 +8,19 @@ struct RootView: View {
             if !model.isAuthorized {
                 OnboardingView()
             } else {
-                HomeView()
+                TabView {
+                    TodayView()
+                        .tabItem { Label("Today", systemImage: "drop.fill") }
+                    StatsView()
+                        .tabItem { Label("Stats", systemImage: "chart.bar.fill") }
+                    SettingsView()
+                        .tabItem { Label("Settings", systemImage: "gearshape") }
+                }
             }
         }
-        // While locked, the drink check covers the whole app and can't be swiped away.
+        // While a reminder is due, the drink check covers the whole app and can't be swiped away.
         .fullScreenCover(isPresented: Binding(get: { model.isLocked }, set: { _ in })) {
-            DrinkCheckView()
+            DrinkCheckView(mode: .reminder)
                 .environmentObject(model)
                 .interactiveDismissDisabled(true)
         }
