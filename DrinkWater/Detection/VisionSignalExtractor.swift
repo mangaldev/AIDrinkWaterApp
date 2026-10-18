@@ -3,8 +3,8 @@ import CoreMedia
 
 /// On-device signals from Apple's built-in Vision models (no model file to ship):
 /// - face landmarks -> where the mouth is, plus head pitch
-/// - hand pose -> where fingertips and wrist are
-/// - image classifier, run only on the area around the mouth and hand -> is a bottle, cup, mug or glass there
+/// - hand pose -> whether any of a hand is in view
+/// - image classifier, run only around the face and hand -> is a bottle, cup, mug or glass there
 final class VisionSignalExtractor: SignalExtractor {
     private let faceRequest = VNDetectFaceLandmarksRequest()
     private let handRequest: VNDetectHumanHandPoseRequest = {
@@ -20,9 +20,6 @@ final class VisionSignalExtractor: SignalExtractor {
     init(profile: DetectionProfile = DetectionProfile()) {
         self.profile = profile
     }
-
-    private let handJoints: [VNHumanHandPoseObservation.JointName] =
-        [.thumbTip, .indexTip, .middleTip, .ringTip, .littleTip, .thumbIP, .indexPIP, .middlePIP]
 
     func signals(for buffer: CMSampleBuffer, checkObjects: Bool) -> FrameSignals {
         // Front camera in portrait delivers frames rotated; .leftMirrored puts the face upright.
@@ -50,20 +47,17 @@ final class VisionSignalExtractor: SignalExtractor {
             }
         }
 
+        // Any finger joint counts, so a few fingers around a mug handle are enough.
         for hand in handRequest.results ?? [] {
-            for joint in handJoints {
-                if let p = try? hand.recognizedPoint(joint), p.confidence > 0.3 {
-                    s.handPoints.append(p.location)
-                }
+            if let points = try? hand.recognizedPoints(.all) {
+                s.handPoints += points.values.filter { $0.confidence > 0.2 }.map(\.location)
             }
         }
 
-        // Only look for a container when the hand is already at the mouth, and only near the mouth,
-        // so a glass sitting on the desk doesn't count. Two areas are checked:
-        // 1. a box around the mouth;
-        // 2. a box around the hand and mouth together. A mug held by its handle sits between the
-        //    fingers and the lips, and when you tip it up the camera sees its base, off to one side.
-        if checkObjects, s.handAtMouth, let mouth = s.mouth {
+        // The drink check needs three things in view: a face, a hand, and a cup, mug, bottle or glass.
+        // The container is looked for around the face (where a cup is while you drink), not across
+        // the whole picture, so a cup sitting on the desk doesn't count.
+        if checkObjects, s.faceFound, s.handFound, let mouth = s.mouth {
             var scores: [String: Float] = [:]
             for roi in containerRegions(mouth: mouth, signals: s) {
                 classifyRequest.regionOfInterest = roi
@@ -96,6 +90,12 @@ final class VisionSignalExtractor: SignalExtractor {
             regions.append(CGRect(x: xs.min()! - pad, y: ys.min()! - pad,
                                   width: xs.max()! - xs.min()! + pad * 2,
                                   height: ys.max()! - ys.min()! + pad * 2))
+        }
+
+        // The whole face area, padded: a tipped-up mug can cover the mouth and nose.
+        if s.faceWidth > 0 {
+            let w = s.faceWidth * 2, h = s.faceHeight * 1.8
+            regions.append(CGRect(x: mouth.x - w / 2, y: mouth.y - h * 0.45, width: w, height: h))
         }
 
         return regions

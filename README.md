@@ -46,11 +46,11 @@ iOS doesn't let a normal app lock the device or stay on screen. The closest real
 
 ### How drinking is detected
 
-`DrinkWater/Detection/` uses Apple's built-in Vision models, so there is no model file to ship. All three of these must line up:
+`DrinkWater/Detection/` uses Apple's built-in Vision models, so there is no model file to ship. All three of these must be in view:
 
 1. **Face:** face landmarks find your mouth (falling back to the lower face when a cup hides your lips).
-2. **Hand at the mouth:** a fingertip or knuckle within about half a face-width of your mouth and not above your upper lip. A hand on your forehead or cheek doesn't count.
-3. **Glass at the mouth:** the built-in image classifier runs only on a small box around your mouth and must see a bottle, cup, mug or glass in at least 3 frames. A glass sitting elsewhere in view doesn't count.
+2. **Hand:** any part of a hand. A few fingers on a mug handle are enough.
+3. **Cup at the face:** the built-in image classifier runs on the area around your face and hand and must see a bottle, cup, mug or glass in at least 3 frames. A glass sitting on the desk doesn't count.
 
 Once all three hold, progress builds; it unlocks after about 1.5 seconds of sipping (tilting your head back counts extra). Tunables are at the top of `DrinkCheck.swift` and `VisionSignalExtractor.swift`.
 

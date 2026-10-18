@@ -16,16 +16,8 @@ struct FrameSignals {
     /// Every label seen around the mouth with its confidence (used for learning from feedback).
     var mouthLabelScores: [String: Float] = [:]
 
-    /// A hand point is right at the mouth: close to it, and not above the upper lip.
-    /// This is what rules out a hand on the forehead or cheek.
-    var handAtMouth: Bool {
-        guard let mouth, faceWidth > 0 else { return false }
-        let maxDistance = faceWidth * 0.45
-        let maxAbove = faceHeight * 0.12   // Vision y grows upward
-        return handPoints.contains { p in
-            hypot(p.x - mouth.x, p.y - mouth.y) < maxDistance && p.y < mouth.y + maxAbove
-        }
-    }
+    /// Some of a hand is in view: even a couple of fingers on a mug handle is enough.
+    var handFound: Bool { !handPoints.isEmpty }
 }
 
 /// Anything that turns a frame into signals. The default is `VisionSignalExtractor`;
