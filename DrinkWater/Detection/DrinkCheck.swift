@@ -103,7 +103,7 @@ final class DrinkCheck: ObservableObject {
 
     private func update(with s: FrameSignals, at now: Date) {
         let step = 1 / fps
-        let atMouth = s.faceFound && s.handAtMouth
+        let atMouth = s.faceFound && s.handFound
 
         framesSeen += 1
         if s.faceFound { framesWithFace += 1 }
@@ -136,11 +136,11 @@ final class DrinkCheck: ObservableObject {
         let newHint: String
         if verified { newHint = "Nice, logged a glass 💧" }
         else if !s.faceFound { newHint = "I can't see your face. Hold the phone in front of you." }
-        else if !s.handAtMouth { newHint = "Bring your glass or bottle to your mouth and take a sip." }
-        else if !containerOK { newHint = "I see your hand, but not a glass. Keep the glass or bottle in view." }
+        else if !s.handFound { newHint = "I can't see your hand. Hold your glass or mug where I can see it." }
+        else if !containerOK { newHint = "I see your face and hand. Now bring your glass, mug or bottle to your mouth." }
         else { newHint = "Keep drinking…" }
 
-        let debug = "face \(s.faceFound ? "✓" : "✗")  hand@mouth \(s.handAtMouth ? "✓" : "✗")  "
+        let debug = "face \(s.faceFound ? "✓" : "✗")  hand \(s.handFound ? "✓" : "✗")  "
             + "glass \(containerFrames)/\(neededContainerFrames)  sip \(String(format: "%.1f", sipSeconds))s  "
             + "bar \(Int(extractor.profile.minConfidence * 100))%\n"
             + s.mouthLabels.joined(separator: ", ")
