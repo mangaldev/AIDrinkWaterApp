@@ -50,13 +50,13 @@ iOS doesn't let a normal app lock the device or stay on screen. The closest real
 
 1. **Face:** face landmarks find your mouth (falling back to the lower face when a cup hides your lips).
 2. **Hand:** any part of a hand. A few fingers on a mug handle are enough.
-3. **Cup at the face:** the built-in image classifier runs on the area around your face and hand and must see a bottle, cup, mug or glass in at least 3 frames. A glass sitting on the desk doesn't count.
+3. **Cup at the face:** the built-in image classifier runs on the area around your face and hand and must see a container (bottle, cup, mug, glass, or a steel, metal or plastic cup) in at least 2 frames. A glass sitting on the desk doesn't count.
 
 Once all three hold, progress builds; it unlocks after about 1.5 seconds of sipping (tilting your head back counts extra). Tunables are at the top of `DrinkCheck.swift` and `VisionSignalExtractor.swift`.
 
 **See what it sees:** turn on Settings → Show detection details, or triple-tap the camera screen. It shows which of the three checks pass and the top labels the classifier sees around your mouth, which helps when tuning.
 
-**Learning from feedback (on the phone only):** after a pass the check asks "Did you just drink?" (👍/👎), and after 15 seconds of trying it offers "I did drink, it didn't notice". Each answer saves the labels seen near the mouth and their confidences (no images) and tunes a per-user `DetectionProfile`: a label seen in 2 missed drinks becomes "your cup", a near-miss lowers the confidence bar (down to 12%), and a 👎 raises it and blocks learned labels that caused it. Body labels like "person" or "hand" are never learned. "I did drink" never logs a glass by itself; it only learns and lets you try again. See `DetectionProfile.swift`; Settings → Drink check learning shows what was learned and can reset it.
+**Learning from feedback (on the phone only):** after a pass the check asks "Did you just drink?" (👍/👎), and after 15 seconds of trying it offers "I did drink, it didn't notice". Each answer saves the labels seen near the mouth and their confidences (no images) and tunes a per-user `DetectionProfile`: a label seen in 2 missed drinks becomes "your cup", a near-miss lowers the confidence bar (down to 10%), and a 👎 raises it and blocks learned labels that caused it. Body labels like "person" or "hand" are never learned. "I did drink" never logs a glass by itself; it only learns and lets you try again. See `DetectionProfile.swift`; Settings → Drink check learning shows what was learned and can reset it.
 
 **Next step for accuracy:** record 30 to 50 short clips of yourself drinking and not drinking, train an Action Classifier in Create ML (it uses body pose), and add it as another `SignalExtractor`.
 
