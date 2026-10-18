@@ -10,8 +10,9 @@ struct DrinkWaterApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(model)
+                .environmentObject(model.log)
                 .onChange(of: scenePhase) { _, phase in
-                    if phase == .active { model.refreshLockState() }
+                    if phase == .active { model.appBecameActive() }
                 }
         }
     }

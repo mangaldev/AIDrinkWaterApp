@@ -44,15 +44,29 @@ iOS doesn't let a normal app lock the device or stay on screen. The closest real
 
 ### How drinking is detected
 
-`DrinkWater/Detection/` uses Apple's built-in Vision models, so there is no model file to ship:
+`DrinkWater/Detection/` uses Apple's built-in Vision models, so there is no model file to ship. All three of these must line up:
 
-1. Face landmarks find your mouth (falling back to the lower face when a cup hides your lips) and head pitch.
-2. Hand pose finds your fingertips and wrist.
-3. The built-in image classifier looks for a bottle, cup, mug or glass.
+1. **Face:** face landmarks find your mouth (falling back to the lower face when a cup hides your lips).
+2. **Hand at the mouth:** a fingertip or knuckle within about half a face-width of your mouth and not above your upper lip. A hand on your forehead or cheek doesn't count.
+3. **Glass at the mouth:** the built-in image classifier runs only on a small box around your mouth and must see a bottle, cup, mug or glass in at least 3 frames. A glass sitting elsewhere in view doesn't count.
 
-It unlocks once your hand has been at your mouth for about 1.5 seconds in total, with a container seen and your face visible. Tilting your head back counts extra. It looks at a live stream at 10 frames per second instead of one photo, which makes a static picture harder to fake. Tunables are at the top of `DrinkCheck.swift`.
+Once all three hold, progress builds; it unlocks after about 1.5 seconds of sipping (tilting your head back counts extra). Tunables are at the top of `DrinkCheck.swift` and `VisionSignalExtractor.swift`.
 
-**Next step for accuracy:** record 30 to 50 short clips of yourself drinking and not drinking, train an Action Classifier in Create ML (it uses body pose), and add it as another `SignalExtractor`. That would also catch "hand to mouth while holding nothing".
+**See what it sees:** turn on Settings → Show detection details, or triple-tap the camera screen. It shows which of the three checks pass and the top labels the classifier sees around your mouth, which helps when tuning.
+
+**Next step for accuracy:** record 30 to 50 short clips of yourself drinking and not drinking, train an Action Classifier in Create ML (it uses body pose), and add it as another `SignalExtractor`.
+
+### Today and Stats
+
+- **Today** shows how many glasses you've had today, with an **Add a glass** button. It opens the camera, and when it sees you drink it logs a glass with the time.
+- **Stats** has a 7- or 30-day chart of glasses (and misses) per day, your average, and every entry with its timestamp, grouped by day. Swipe left on an entry in Today to delete it.
+- Tapping **Skip for now** on a reminder logs a missed glass.
+
+### Reminders in the free build
+
+iOS never lets an app open itself, so a notification is the strongest nudge available. At each reminder time you get a notification, then a follow-up every 5 minutes (up to 4) until you drink or skip. Tapping any of them opens DrinkWater straight into the camera check. Opening DrinkWater after a missed reminder also lands on the check.
+
+Notifications are planned for the next day or two and re-planned each time you open the app, so open it at least once a day.
 
 ### Escape hatch
 

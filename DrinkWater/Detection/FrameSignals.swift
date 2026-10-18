@@ -6,15 +6,23 @@ struct FrameSignals {
     var faceFound = false
     var mouth: CGPoint?
     var faceWidth: CGFloat = 0
+    var faceHeight: CGFloat = 0
     var handPoints: [CGPoint] = []
-    var containerSeen = false        // bottle / cup / glass seen in this frame
+    /// A bottle / cup / glass was recognized in the small area around the mouth.
+    var containerAtMouth = false
     var headTiltedBack = false       // pitch suggests tipping the head back to drink
+    /// Top labels the classifier saw around the mouth (shown in debug mode).
+    var mouthLabels: [String] = []
 
-    /// Hand (fingertips or wrist) close to the mouth, relative to face size.
-    var handNearMouth: Bool {
+    /// A hand point is right at the mouth: close to it, and not above the upper lip.
+    /// This is what rules out a hand on the forehead or cheek.
+    var handAtMouth: Bool {
         guard let mouth, faceWidth > 0 else { return false }
-        let limit = faceWidth * 0.75
-        return handPoints.contains { hypot($0.x - mouth.x, $0.y - mouth.y) < limit }
+        let maxDistance = faceWidth * 0.45
+        let maxAbove = faceHeight * 0.12   // Vision y grows upward
+        return handPoints.contains { p in
+            hypot(p.x - mouth.x, p.y - mouth.y) < maxDistance && p.y < mouth.y + maxAbove
+        }
     }
 }
 

@@ -3,8 +3,9 @@ import SwiftUI
 import FamilyControls
 #endif
 
-struct HomeView: View {
+struct SettingsView: View {
     @EnvironmentObject var model: AppModel
+    @AppStorage("showDetectionDebug") private var showDebug = false
     #if SCREEN_TIME
     @State private var showPicker = false
     @State private var pickerSelection = FamilyActivitySelection()
@@ -46,19 +47,16 @@ struct HomeView: View {
                 }
                 #endif
 
-                Section("Last drink") {
-                    if let last = SharedStore.lastDrink {
-                        Text(last, style: .relative) + Text(" ago")
-                    } else {
-                        Text("No drinks verified yet").foregroundStyle(.secondary)
-                    }
-                }
-
-                Section("Testing") {
+                Section {
                     Button("Lock now") { model.lockNow() }
+                    Toggle("Show detection details", isOn: $showDebug)
+                } header: {
+                    Text("Testing")
+                } footer: {
+                    Text("Detection details show what the camera check sees. You can also triple-tap the camera screen.")
                 }
             }
-            .navigationTitle("DrinkWater")
+            .navigationTitle("Settings")
             #if SCREEN_TIME
             .familyActivityPicker(isPresented: $showPicker, selection: $pickerSelection)
             .onChange(of: pickerSelection) { _, sel in model.saveAllowedApps(sel) }

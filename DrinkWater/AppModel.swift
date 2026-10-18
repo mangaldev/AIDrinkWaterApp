@@ -14,6 +14,7 @@ final class AppModel: ObservableObject {
     @Published var allowedApps = SharedStore.allowedApps
     #endif
 
+    let log = DrinkLog()
     private var pollTimer: Timer?
 
     init() {
@@ -37,6 +38,12 @@ final class AppModel: ObservableObject {
             ShieldController.lock()
         }
         isLocked = SharedStore.isLocked
+    }
+
+    /// Called when the app comes to the foreground.
+    func appBecameActive() {
+        refreshLockState()
+        replanNotifications()
     }
 
     /// Asks for notifications (and, in the paid build, Screen Time access).
@@ -79,15 +86,33 @@ final class AppModel: ObservableObject {
         refreshLockState()
     }
 
-    func drinkVerified() {
+    /// The camera saw a drink. Logs a glass; if a reminder was waiting, that clears it too.
+    func drinkVerified(manual: Bool) {
+        let wasLocked = SharedStore.isLocked
+        log.add(.drank, source: wasLocked || !manual ? .reminder : .manual)
         SharedStore.lastDrink = Date()
-        ShieldController.unlock()
+        if wasLocked { clearReminder() }
         refreshLockState()
     }
 
+    /// "Skip for now": unlocks, but the reminder is logged as a missed glass.
     func skip() {
         guard FeatureFlags.escapeHatchEnabled else { return }
-        ShieldController.unlock()
+        log.add(.missed, source: .reminder)
+        clearReminder()
         refreshLockState()
+    }
+
+    private func clearReminder() {
+        ShieldController.unlock()
+        NotificationPlanner.clearDelivered()
+        replanNotifications()
+    }
+
+    private func replanNotifications() {
+        #if !SCREEN_TIME
+        guard isAuthorized else { return }
+        NotificationPlanner.replan(schedule: SharedStore.schedule, lastCleared: SharedStore.lastCleared)
+        #endif
     }
 }
