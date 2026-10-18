@@ -38,11 +38,11 @@ struct SettingsView: View {
                 } header: {
                     Text("Always allowed")
                 } footer: {
-                    Text("Pick SipProof itself, plus anything you must never lose, like Phone.")
+                    Text("Pick WaterSipAI itself, plus anything you must never lose, like Phone.")
                 }
                 #else
                 Section {
-                    Text("At each reminder, SipProof stays on the camera check until you drink. It doesn't block other apps.")
+                    Text("At each reminder, WaterSipAI stays on the camera check until you drink. It doesn't block other apps.")
                         .foregroundStyle(.secondary)
                 }
                 #endif

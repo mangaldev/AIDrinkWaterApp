@@ -58,7 +58,7 @@ enum NotificationPlanner {
     private static func request(at date: Date, followUp: Bool, calendar: Calendar) -> UNNotificationRequest {
         let content = UNMutableNotificationContent()
         content.title = followUp ? "Still waiting on that glass 💧" : "Time to drink water 💧"
-        content.body = "Tap to open SipProof and take a sip on camera."
+        content.body = "Tap to open WaterSipAI and take a sip on camera."
         content.sound = .default
         content.interruptionLevel = .timeSensitive
         let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)

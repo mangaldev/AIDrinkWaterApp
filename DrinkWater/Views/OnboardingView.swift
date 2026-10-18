@@ -7,7 +7,7 @@ struct OnboardingView: View {
         VStack(spacing: 24) {
             Spacer()
             Image(systemName: "drop.fill").font(.system(size: 72)).foregroundStyle(.blue)
-            Text("SipProof").font(.largeTitle.bold())
+            Text("WaterSipAI").font(.largeTitle.bold())
             Text(onboardingText)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
@@ -24,10 +24,10 @@ struct OnboardingView: View {
     }
 
     #if SCREEN_TIME
-    private let onboardingText = "At the times you choose, SipProof blocks your other apps until the camera sees you take a drink. Everything is checked on your phone; no video is uploaded."
+    private let onboardingText = "At the times you choose, WaterSipAI blocks your other apps until the camera sees you take a drink. Everything is checked on your phone; no video is uploaded."
     private let buttonText = "Allow Screen Time & notifications"
     #else
-    private let onboardingText = "At the times you choose, SipProof reminds you and stays locked until the camera sees you take a drink. Everything is checked on your phone; no video is uploaded."
+    private let onboardingText = "At the times you choose, WaterSipAI reminds you and stays locked until the camera sees you take a drink. Everything is checked on your phone; no video is uploaded."
     private let buttonText = "Allow notifications"
     #endif
 }

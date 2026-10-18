@@ -24,14 +24,14 @@ targets:
     info:
       path: DrinkWater/Info.plist
       properties:
-        CFBundleDisplayName: SipProof
+        CFBundleDisplayName: WaterSipAI
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         ITSAppUsesNonExemptEncryption: false
         LSApplicationCategoryType: public.app-category.healthcare-fitness
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
-        NSCameraUsageDescription: SipProof uses the front camera to check that you are drinking water. Video never leaves your phone.
+        NSCameraUsageDescription: WaterSipAI uses the front camera to check that you are drinking water. Video never leaves your phone.
     entitlements:
       path: DrinkWater/DrinkWater.entitlements
       properties:

@@ -1,4 +1,4 @@
-# SipProof (DrinkWater)
+# WaterSipAI (DrinkWater)
 
 An iOS app that, at times you choose, locks you out until the front camera sees you drinking water. The check runs fully on the phone.
 

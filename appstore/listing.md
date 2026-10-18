@@ -1,6 +1,6 @@
 # App Store listing (copy into App Store Connect)
 
-**Name (30 max):** SipProof: Water Reminder
+**Name (30 max):** WaterSipAI: Water Reminder
 
 **Subtitle (30 max):** Drink tracker that sees you sip
 
@@ -23,19 +23,19 @@ drink,hydration,tracker,habit,daily,goal,intake,glass,bottle,health,log,aqua,hyd
 
 **Promotional text (170 max):**
 ```
-Most water reminders are easy to swipe away. SipProof opens a quick camera check and only logs a glass when it sees you actually drink.
+Most water reminders are easy to swipe away. WaterSipAI opens a quick camera check and only logs a glass when it sees you actually drink.
 ```
 
 **Description:**
 ```
-Most water reminders are easy to ignore. SipProof checks that you actually drink.
+Most water reminders are easy to ignore. WaterSipAI checks that you actually drink.
 
-At the times you choose, SipProof sends a reminder. Tap it and a quick camera check opens: bring your glass or bottle to your mouth, take a sip, and it's logged. Not ready? Skip it, and it counts as a missed glass, so you stay honest with yourself.
+At the times you choose, WaterSipAI sends a reminder. Tap it and a quick camera check opens: bring your glass or bottle to your mouth, take a sip, and it's logged. Not ready? Skip it, and it counts as a missed glass, so you stay honest with yourself.
 
 HOW IT WORKS
 • Pick your hours and how often you want a reminder
 • At each reminder, take a sip in front of the camera
-• SipProof sees your face, your hand and your glass, then logs the glass with the time
+• WaterSipAI sees your face, your hand and your glass, then logs the glass with the time
 • If you don't drink, gentle follow-ups arrive every few minutes
 
 TRACK YOUR HABIT
@@ -44,7 +44,7 @@ TRACK YOUR HABIT
 • Missed reminders show up too, so you can spot your dry spells
 
 PRIVATE BY DESIGN
-• The camera check runs entirely on your iPhone
+• The AI camera check runs entirely on your iPhone
 • Video is never recorded, saved or uploaded
 • No account, no ads, no tracking
 
@@ -59,7 +59,7 @@ Build a water habit you can actually prove.
 
 **Notes for the reviewer:**
 ```
-SipProof reminds the user to drink water and verifies it with an on-device camera check.
+WaterSipAI reminds the user to drink water and verifies it with an on-device camera check.
 
 How to test:
 1. Open the app and tap "Allow notifications".
