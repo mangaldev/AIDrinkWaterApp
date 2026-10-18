@@ -40,6 +40,10 @@ struct DrinkCheckView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal)
 
+                if phase == .checking {
+                    StepList(passed: checker.passed)
+                }
+
                 if let learnedNote {
                     Text(learnedNote)
                         .font(.subheadline)
@@ -63,11 +67,6 @@ struct DrinkCheckView: View {
                 case .askFeedback:
                     feedbackButtons
                 case .checking:
-                    ProgressView(value: checker.progress)
-                        .tint(.blue)
-                        .scaleEffect(x: 1, y: 3)
-                        .padding(.horizontal, 40)
-
                     if checker.offerManualConfirm {
                         Button("I did drink, it didn't notice") { userSaysDrank() }
                             .buttonStyle(.borderedProminent)
@@ -180,5 +179,29 @@ struct DrinkCheckView: View {
             checker.apply(learner.profile)
             checker.reset()
         }
+    }
+}
+
+/// The five drink-check steps, each turning green once it's seen.
+private struct StepList: View {
+    let passed: [Bool]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(DrinkCheck.Step.allCases) { step in
+                let ok = passed.indices.contains(step.rawValue) && passed[step.rawValue]
+                HStack(spacing: 10) {
+                    Image(systemName: ok ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(ok ? .green : .white.opacity(0.7))
+                        .font(.title3)
+                    Text(step.title)
+                        .font(.subheadline.weight(ok ? .semibold : .regular))
+                }
+                .animation(.easeInOut(duration: 0.2), value: ok)
+            }
+        }
+        .padding(14)
+        .background(.black.opacity(0.45), in: RoundedRectangle(cornerRadius: 14))
+        .accessibilityElement(children: .combine)
     }
 }
