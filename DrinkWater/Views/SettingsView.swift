@@ -27,6 +27,25 @@ struct SettingsView: View {
                     Button("Save schedule") { model.saveSchedule() }
                 }
 
+                Section {
+                    Toggle("Vibrate", isOn: $model.alerts.vibrate)
+                    Toggle("Sound", isOn: $model.alerts.soundEnabled)
+                    if model.alerts.soundEnabled {
+                        Picker("Sound", selection: $model.alerts.sound) {
+                            ForEach(AlertSettings.Sound.allCases) { Text($0.title).tag($0) }
+                        }
+                        Button("Play sound") { AlertPlayer.play(model.alerts.sound) }
+                    }
+                    if model.alerts.vibrate {
+                        Button("Test vibration") { AlertPlayer.vibrate(times: 3) }
+                    }
+                } header: {
+                    Text("Reminder alerts")
+                } footer: {
+                    Text("With WaterSipAI open, a reminder vibrates 3 times. When it arrives as a notification, iOS vibrates once, and only if vibration is on in your iPhone's Sounds & Haptics settings. The silent switch mutes sounds.")
+                }
+                .onChange(of: model.alerts) { _, _ in model.saveAlerts() }
+
                 #if SCREEN_TIME
                 Section {
                     Button("Choose always-allowed apps") {

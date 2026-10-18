@@ -9,6 +9,7 @@ final class AppModel: ObservableObject {
     @Published var isAuthorized = false
     @Published var isLocked = SharedStore.isLocked
     @Published var schedule = SharedStore.schedule
+    @Published var alerts = SharedStore.alerts
     @Published var errorMessage: String?
     #if SCREEN_TIME
     @Published var allowedApps = SharedStore.allowedApps
@@ -78,6 +79,12 @@ final class AppModel: ObservableObject {
         } catch {
             errorMessage = "Couldn't set schedule: \(error.localizedDescription)"
         }
+    }
+
+    /// Saves vibration / sound choices and re-plans pending reminders so they use them.
+    func saveAlerts() {
+        SharedStore.alerts = alerts
+        replanNotifications()
     }
 
     /// Manual trigger for testing the lock without waiting for the schedule.

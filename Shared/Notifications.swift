@@ -8,7 +8,7 @@ enum DrinkNotifications {
         let content = UNMutableNotificationContent()
         content.title = "Time to drink water"
         content.body = "Tap to open WaterSipAI and unlock your phone."
-        content.sound = .default
+        content.sound = SharedStore.alerts.notificationSound
         content.interruptionLevel = .timeSensitive
         let req = UNNotificationRequest(identifier: "drink-now",
                                         content: content,
