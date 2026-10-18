@@ -25,7 +25,7 @@ final class DrinkCheck: ObservableObject {
     // Tunables
     private let fps: Double = 10
     private let neededSipSeconds: Double = 1.5
-    private let neededContainerFrames = 3        // classifier must agree this many times
+    private let neededContainerFrames = 2        // classifier must agree this many times
     private let forgetAfter: TimeInterval = 3    // lose progress if you stop for this long
     private let offerConfirmAfter: TimeInterval = 15
 

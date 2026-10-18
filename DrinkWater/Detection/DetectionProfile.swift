@@ -8,9 +8,11 @@ struct DetectionProfile: Codable, Equatable {
     /// Matched anywhere in the label, so "coffee_mug" and "water_bottle" count.
     static let baseContainerWords = ["bottle", "cup", "mug", "glass", "tumbler", "beverage", "drink",
                                      "straw", "flask", "jar", "coffee", "tea", "thermos", "canteen",
-                                     "tableware", "dishware", "drinkware", "porcelain", "ceramic"]
+                                     "tableware", "dishware", "drinkware", "glassware", "porcelain", "ceramic",
+                                     // Materials: a steel or plastic cup is often labeled by what it's made of.
+                                     "steel", "metal", "silver", "alumin", "chrome", "plastic", "vessel"]
     /// Matched only as a whole word, because they are short ("can" is in "candle").
-    static let baseContainerTokens = ["can", "kettle", "pitcher", "jug", "carafe", "container"]
+    static let baseContainerTokens = ["can", "tin", "kettle", "pitcher", "jug", "carafe", "container", "shaker"]
     /// Never count these, even if they contain a container word (e.g. "eyeglasses", "cupcake").
     static let baseExcludedWords = ["eyeglass", "sunglass", "glasses", "goggles", "window", "cupcake", "teeth"]
     /// Labels about people and bodies. Never learned as a container, or a hand on the mouth would pass.
@@ -18,8 +20,8 @@ struct DetectionProfile: Codable, Equatable {
                             "arm", "skin", "portrait", "selfie", "hair", "beard", "mouth", "lip", "nose",
                             "eye", "ear", "clothing", "shirt", "human"]
 
-    static let defaultMinConfidence: Float = 0.25
-    static let lowestMinConfidence: Float = 0.12
+    static let defaultMinConfidence: Float = 0.15
+    static let lowestMinConfidence: Float = 0.1
     static let highestMinConfidence: Float = 0.5
 
     /// Exact labels learned to mean "drink container" for this user (e.g. "kettle").
@@ -75,7 +77,7 @@ struct CheckSample: Codable, Identifiable {
 /// Rules (simple on purpose, so the behavior is predictable):
 /// - "I did drink": labels that showed up near your mouth (not body labels) are remembered.
 ///   A label seen in 2 such checks becomes a container for you. If a known container was seen
-///   but below the bar, the bar is lowered to just under it (never below 0.12).
+///   but below the bar, the bar is lowered to just under it (never below 0.1).
 /// - 👎 after a pass: the labels that made it pass are blocked if they were learned, and the
 ///   confidence bar goes up a little (never above 0.5).
 /// - 👍 after a pass: kept as a good example; nothing changes.
